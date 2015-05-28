@@ -1,24 +1,29 @@
-# Zabbix cmdline tool
-This tool allows for the manipulation of objects in Zabbix via the restful API.
+# zabbixcli
+This tool allow manipulate on Zabbix objects, like template, over the restful API. And keep congituration in YAML files and store them in vcs
 
 It current supports the following:
-* Create Templates with almost full set of required objects.
+* Create Templates with almost full set of objects.
 * Create Hostgroups and link Templates to them.
 * Create Autoregistration Rules.
 
-# How it works
-This tool takes yaml formated template file, calculate dependencies, and make required requests to zabbix server for create template hierarchy and other objects if required.
-> **Important**: It`s recomended to remove any templates before use this tool.
+What it's doesn't support yet, but highly desirable:
+* It doesn't remove unused items from template. If you remove something from YAML-template, and apply these changes to zabbix, this something, will continue exist in zabbix, and it require manual cleanup.
 
 ### Requirements
-The zabbix & argparse packages are required but not currently part of the standard library.
+The zabbixcli use [py-zabbix](https://github.com/blacked/py-zabbix) module. Which can be installed over pip.
 ```
-cd devops/lib           # go to devops repo
-pip install zabbix/     # install zabbix module from local repo
-pip install argparse
+pip install py-zabbix
 ```
 
+# How it works
+This tool takes yaml formated template files, resolve dependencies, and make appropriate API calls to zabbix server for create template hierarchy or make another actions.
+> **Important**: I highly recommend remove any current templates before use this tool, and manage your zabbix templates only with zabbixcli.
+
+### Templates
+Feel free to use any of those templates [zabbixcli-templates](https://github.com/blacked/zabbixcli-templates), modify them or make your own.
+
 ### Usage
+
 The tool itself is self documenting, and a helpful usage guide can be found by running the `-h` flag
 ```
 $ zabbixcli
@@ -40,9 +45,21 @@ optional arguments:
                                       Delete object from zabbix.
   Example: -D item "Template OS Linux" "Available memory"
                                       
+``` 
+
+#### Configure zabbixcli
+First you should configure zabbixcli to works with appropriate zabbix server and use right credentials.
+You can either specify these as command line parameters, or use environment varible:
+```
+cat >> ~/.bash_profile <<'EOM'
+# Cretentials for zabbixcli
+export ZBXCLI_USER='admin'
+export ZBXCLI_PASS='zabbix'
+export ZBXCLI_URL='https://localhost'
+EOM
 ```
 
-## Push default template
+#### Push default template
 ```
 $ cd devops/config/zabbix/templates
 $ ls
@@ -54,7 +71,7 @@ Syncing : Template OS Linux
  [####################################################################] 56/56
 ```
 
-## Delete object from zabbix
+#### Delete object from zabbix
 
 You can delete single object from zabbix.
 
@@ -63,9 +80,9 @@ To delete an item from specific template do:
 $ zabbixcli -D item "Template OS Linux" "Available memory"
 ```
 
-# Creating first template
+### Creating first template
 
-## Describe a template
+#### Describe a template
 First we need to create a directory for our template:
 ```bash
 $ mkdir "Template MyApp"
@@ -79,7 +96,7 @@ When zabbixcli runs it search all *.yaml files in this directory, subdirectories
 ```bash
 $ vi ./init.yaml
 ```
-
+`
 ```yaml
 name: "Template MyApp"  # Name of template in Zabbix
 groups:
@@ -88,7 +105,7 @@ groups:
 
 This will create "Template MyApp" and add it to group "Templates".
 
-## Describe an applications and items
+#### Describe an applications and items
 Lets try to add an item to monitoring:
 ```bash
 $ mkdir apps
@@ -108,7 +125,7 @@ As you can see many of parameters were not specified. All of them have predefine
 
 Also you can specify just needed section and pass an other.
 
-## Describe triggers
+#### Describe triggers
 ```bash
 $ vi triggers.yaml
 ```
@@ -121,7 +138,7 @@ triggers:
     expression:     "{Template MyApp:proc.num[,,,myapp].last(#1)}=0"
 ```
 
-## Push template to zabbix
+#### Push template to zabbix
 Now we have next structure:
 
 ```bash
@@ -155,7 +172,7 @@ triggers:
     expression:     "{Template MyApp:proc.num[,,,myapp].last(#1)}=0"
 ```
 
-## Create a Role
+#### Create a Role
 You can aggregate multiple templates into the Role.
 Role it`s just a template with specific tags. Lets create it:
 
@@ -191,7 +208,7 @@ Lets push it on local zabbix server with default user and pass (`admin`,`zabbix`
 $ zabbixcli -t="Template MyApp"
 ```
 
-## Alert targeting
+#### Alert targeting
 You can target alerts from specific Role to specific user or groups.
 
 ```
@@ -214,20 +231,20 @@ Trigger severity >= Warning
 Send message to user groups: Zabbix administrators via SMS
 ```
 
-## Examples
+### Examples
 You can find addition, more complex, examples in `devops/config/zabbix/templates`
 
-# List of default values
+#### List of default values
 ```yaml
 disabled:     False         # Status of zabbix object.
 ```
-## Discovery
+#### Discovery
 ```yaml
 delay:        3600          # Delay between discoveries in seconds
 lifetime:     30            # How long autodiscovered items will exist in days
 ```
 
-## Items
+#### Items
 ```yaml
 return_type:  Numeric       # Type of return data
 method:       Agent         # Method of checking
@@ -237,12 +254,12 @@ trends:       365           # How long trends values will stored in days
 store_as:     'as is'       # How to store values 'as is', 'speed', 'change'
 ```
 
-## Triggers
+#### Triggers
 ```yaml
 warn_level:   None          # Level of severity
 ```
 
-## Graphs
+#### Graphs
 ```yaml
 height:       200           # Height of graph
 width:        900           # Width of graph
@@ -262,7 +279,7 @@ percent_right:  0.0
 percent_left:   0.0
 ```
 
-## Alerts
+#### Alerts
 ```yaml
 recovery:         True,
 trigger_status:   'problem',# problem, ok
