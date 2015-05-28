@@ -49,12 +49,16 @@ class ZabbixCLIArguments(object):
         Load arguments from enviroment variables
         """
 
-        if 'ZBXCLI_USER' in os.environ:
-            self.args['user'] = os.environ['ZBXCLI_USER']
-        if 'ZBXCLI_PASS' in os.environ:
-            self.args['pass'] = os.environ['ZBXCLI_PASS']
-        if 'ZBXCLI_URL' in os.environ:
-            self.args['server'] = os.environ['ZBXCLI_URL']
+        # Map env variables to cli arguments
+        args_map = {
+            'ZBXCLI_USER': 'user',
+            'ZBXCLI_PASS': 'pass',
+            'ZBXCLI_URL': 'server'}
+
+        # Load env variables
+        for ev, arg in args_map.iteritems():
+            if ev in os.environ:
+                self.args[arg] = os.environ[ev]
 
     def _parse(self):
         """
@@ -187,7 +191,7 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
         if len(sys.argv) <= 1:
             self.argparser.print_help()
             sys.exit()
-            
+
         if not self.args.get('template'):
             sys.exit('Template should be specified.')
 
