@@ -11,5 +11,4 @@ except:
 # TODO: Check existence and remove unnecesery components (items, triggers etc.)
 
 if __name__ == '__main__':
-
     ZabbixCLI()

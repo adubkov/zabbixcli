@@ -34,7 +34,9 @@ class ZabbixAutoreg(ZabbixObject):
             role=self.obj['name'])
 
         # if contains metadata tag then use it
-        if isinstance(self.obj['autoreg'], dict) and self.obj['autoreg'].get('metadata'):
+        if isinstance(
+                self.obj['autoreg'],
+                dict) and self.obj['autoreg'].get('metadata'):
             metadata = self.obj['autoreg']['metadata']
         else:
             metadata = self.obj['name']
@@ -57,18 +59,22 @@ class ZabbixAutoreg(ZabbixObject):
              'esc_step_to': 1},
             # Disable host
             {'esc_step_from': 1,
-                'esc_period': 0,
-                'operationtype': 9,
-                'esc_step_to': 1}
+             'esc_period': 0,
+             'operationtype': 9,
+             'esc_step_to': 1},
         ]
 
         # if contains add_to_group
-        if isinstance(self.obj['autoreg'], dict) and self.obj['autoreg'].get('add_to_group'):
+        if isinstance(
+                self.obj['autoreg'],
+                dict) and self.obj['autoreg'].get('add_to_group'):
             result['operations'].append(
                 {
                     # actionid: add to hostgroup - 4
                     'operationtype': 4, 'esc_step_to': 1, 'esc_step_from': 1, 'esc_period': 0,
-                    'opgroup': ZabbixGroups(self.zapi, self.obj.get('autoreg')['add_to_group']).apply()
+                    'opgroup': ZabbixGroups(
+                        self.zapi,
+                        self.obj.get('autoreg')['add_to_group']).apply()
                 },
             )
         return result

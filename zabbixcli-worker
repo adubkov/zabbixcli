@@ -1,0 +1,45 @@
+#!/bin/bash -e
+# This script check if zabbix templates were changed and run zabbixcli to sync with zabbix
+
+# absolute path to repo, eg. /opt/devops/
+REPO_DIR=$1
+
+# relative path to zabbix templates, eg. configs/zabbix/templates
+TEMPLATES_DIR=$2
+
+# Path to save latest commit sha
+TMP_SHA=/tmp/template-repo-last-sha
+
+pushd $REPO_DIR
+
+git pull origin master
+
+if [[ -f $TMP_SHA ]];
+then
+  PREV_SHA=`cat $TMP_SHA`
+  GIT_CHECK=`git log $PREV_SHA..HEAD --pretty=format:"" --name-only $TEMPLATES_DIR | sort -r | uniq`
+fi
+
+# Save latest SHA to temp file
+git log --pretty=format:"%H" -1 > $TMP_SHA
+
+echo $(date)
+
+pushd $TEMPLATES_DIR
+
+if [[ "$GIT_CHECK" != "" ]];
+then
+  IFS=$(echo -en "\n\b")
+  for i in $GIT_CHECK;
+  do
+    DIR_NAME=`dirname "$i"`
+    if [[ "$i" == $TEMPLATES_DIR* ]]
+    then
+      TEMPLATE=${DIR_NAME##*/}
+      echo $TEMPLATE
+      /usr/bin/python /usr/bin/zabbixcli -t=./${TEMPLATE} --only
+    fi
+  done
+fi
+
+popd
