@@ -143,7 +143,7 @@ class ZabbixTriggerAction(ZabbixObject):
 
         return result
 
-    def push(self):
+    def apply(self):
         """
         Push action object to zabbix server.
         """

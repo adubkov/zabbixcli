@@ -230,7 +230,7 @@ class ZabbixGraph(ZabbixObject):
         self._pie_graph_req(req)
         logger.debug('Exploded graph:')
 
-    def push(self):
+    def apply(self):
         """
         Push graph object to zabbix server.
         """
@@ -253,7 +253,7 @@ class ZabbixGraph(ZabbixObject):
         func = "self.zapi.{obj_type}.{zbx_method}".format(
             obj_type=self.obj_type,
             zbx_method=zbx_method)
-        logger.debug('{func}: {req}'.format(func=func, req=req))
+        logger.debug('%s: %s', func, req)
         result = eval(func)(req)
 
         return result

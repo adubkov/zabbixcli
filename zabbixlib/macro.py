@@ -38,7 +38,7 @@ class ZabbixMacro(ZabbixObject):
         }
         return result
 
-    def push(self):
+    def apply(self):
         """
         Push usermacro object to zabbix server.
         """
@@ -46,7 +46,7 @@ class ZabbixMacro(ZabbixObject):
         req = self._create_request()
 
         # Get 'macro' object id
-        logger.debug('ZabbixMacro._create_request: {req}'.format(req=req))
+        logger.debug('ZabbixMacro._create_request: %s', req)
         obj_id = self.zapi.get_id(
             'usermacro',
             req['macro'],

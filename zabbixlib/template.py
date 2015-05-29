@@ -30,9 +30,9 @@ class ZabbixTemplate(object):
         Return  (str)   Request for changes.
         """
 
-        return {'groups': ZabbixGroups(self.zapi, self.obj['groups']).push()}
+        return {'groups': ZabbixGroups(self.zapi, self.obj['groups']).apply()}
 
-    def push(self):
+    def apply(self):
         """
         Push template object to zabbix server.
         """
@@ -122,7 +122,7 @@ class ZabbixTemplateFile(dict):
                 else:
                     template1[k] = v
 
-        logger.debug('Template result:\n{0}'.format(template1))
+        logger.debug('Template result:\n%s', template1)
 
     def _load(self):
         """
@@ -138,16 +138,16 @@ class ZabbixTemplateFile(dict):
                 # Load template
                 template = yaml.safe_load(str_buf)
                 logger.debug(
-                    'Loaded template[{0}]:\n{1}'.format(
+                    'Loaded template[%s]:\n%s',
                         file_,
-                        template))
+                        template)
                 # Merge template
                 self._merge(result, template)
 
         # Save template in class variable
         self.template = result
-        logger.info('Template {0} was fully loaded.'.format(self.name))
-        logger.debug('Combined template:\n{0}'.format(result))
+        logger.info('Template %s was fully loaded.', self.name)
+        logger.debug('Combined template:\n%s', result)
 
         return result
 

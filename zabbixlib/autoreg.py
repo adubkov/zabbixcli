@@ -68,12 +68,12 @@ class ZabbixAutoreg(ZabbixObject):
                 {
                     # actionid: add to hostgroup - 4
                     'operationtype': 4, 'esc_step_to': 1, 'esc_step_from': 1, 'esc_period': 0,
-                    'opgroup': ZabbixGroups(self.zapi, self.obj.get('autoreg')['add_to_group']).push()
+                    'opgroup': ZabbixGroups(self.zapi, self.obj.get('autoreg')['add_to_group']).apply()
                 },
             )
         return result
 
-    def push(self):
+    def apply(self):
         """
         Push action object to zabbix server.
         """
@@ -82,7 +82,7 @@ class ZabbixAutoreg(ZabbixObject):
         req = self._create_request()
 
         # Get 'action' object id
-        logger.debug('ZabbixAutoreg._create_request: {req}'.format(req=req))
+        logger.debug('ZabbixAutoreg._create_request: %s', req)
         obj_id = self.zapi.get_id('action', req['name'])
 
         if obj_id:

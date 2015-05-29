@@ -22,7 +22,7 @@ class ZabbixApp(ZabbixObject):
         self.obj_type = 'application'
         ZabbixObject(self.zapi, self.obj)
 
-    def push(self):
+    def apply(self):
         """
         Push application object to zabbix server.
         """

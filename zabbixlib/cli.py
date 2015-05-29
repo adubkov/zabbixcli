@@ -229,10 +229,10 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
             self.config = ZabbixDefaults()
             ProgressBar.__init__(self, self.template)
 
-            # Start pushing process
-            self.push()
+            # Start applying process
+            self.apply()
 
-    def _push_linked_templates(self):
+    def _apply_linked_templates(self):
         if self.template.get('templates') and not self.args.get('only', False):
             print self.template.get('name') + ' depends from:'
             for linked_template in self.template.get('templates', []):
@@ -240,55 +240,55 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
             for linked_template in self.template.get('templates', []):
                 ZabbixCLI(template=linked_template)
 
-    def _push_template(self, template):
+    def _apply_template(self, template):
         result = None
         print('Syncing : {0}'.format(template['name']))
-        result = ZabbixTemplate(self.zapi, template).push()
+        result = ZabbixTemplate(self.zapi, template).apply()
         self._progressbar_update()
         return result
 
-    def _push_macro(self, macro):
+    def _apply_macro(self, macro):
         result = None
-        result = ZabbixMacro(self.zapi, macro, self.template_id).push()
+        result = ZabbixMacro(self.zapi, macro, self.template_id).apply()
         self._progressbar_update()
         return result
 
-    def _push_macros(self):
+    def _apply_macros(self):
         for macro in self.template.get('macros', []):
-            self._push_macro(macro)
+            self._apply_macro(macro)
 
-    def _push_app(self, app):
+    def _apply_app(self, app):
         result = None
-        result = ZabbixApp(self.zapi, app, self.template_id).push()
+        result = ZabbixApp(self.zapi, app, self.template_id).apply()
         self._progressbar_update()
         return result
 
-    def _push_item(self, item):
+    def _apply_item(self, item):
         result = None
         result = ZabbixItem(
             self.zapi,
             item,
             self.config,
-            self.template_id).push()
+            self.template_id).apply()
         self._progressbar_update()
         return result
 
-    def _push_items(self, items, app_id):
+    def _apply_items(self, items, app_id):
         for item in items:
             item['app_id'] = app_id
-            self._push_item(item)
+            self._apply_item(item)
 
-    def _push_item_prototype(self, prototype):
+    def _apply_item_prototype(self, prototype):
         result = None
         result = ZabbixItemPrototype(
             self.zapi,
             prototype,
             self.config,
-            self.template_id).push()
+            self.template_id).apply()
         self._progressbar_update()
         return result
 
-    def _push_item_prototypes(self, discovery, app_id):
+    def _apply_item_prototypes(self, discovery, app_id):
         items = discovery.get('items', [])
         rule_id = self.zapi.get_id(
             'discoveryrule',
@@ -296,74 +296,74 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
             templateid=self.template_id)
         for item in items:
             item.update({'rule_id': rule_id, 'app_id': app_id})
-            self._push_item_prototype(item)
+            self._apply_item_prototype(item)
 
-    def _push_graph(self, graph):
+    def _apply_graph(self, graph):
         result = None
         result = ZabbixGraph(
             self.zapi,
             graph,
             self.config,
-            self.template_id).push()
+            self.template_id).apply()
         self._progressbar_update()
         return result
 
-    def _push_graphs(self):
+    def _apply_graphs(self):
         for graph in self.template.get('graphs', []):
-            self._push_graph(graph)
+            self._apply_graph(graph)
 
-    def _push_graph_prototype(self, prototype):
+    def _apply_graph_prototype(self, prototype):
         result = None
         result = ZabbixGraphPrototype(
             self.zapi,
             prototype,
             self.config,
-            self.template_id).push()
+            self.template_id).apply()
         self._progressbar_update()
         return result
 
-    def _push_graph_prototypes(self, discovery):
+    def _apply_graph_prototypes(self, discovery):
         graphs = discovery.get('graphs', [])
         for graph in graphs:
-            self._push_graph_prototype(graph)
+            self._apply_graph_prototype(graph)
 
-    def _push_trigger(self, trigger):
+    def _apply_trigger(self, trigger):
         result = None
         result = ZabbixTrigger(
             self.zapi,
             trigger,
             self.config,
-            self.template_id).push()
+            self.template_id).apply()
         self._progressbar_update()
         return result
 
-    def _push_triggers(self):
+    def _apply_triggers(self):
         for trigger in self.template.get('triggers', []):
-            self._push_trigger(trigger)
+            self._apply_trigger(trigger)
 
-    def _push_trigger_prototype(self, prototype):
+    def _apply_trigger_prototype(self, prototype):
         result = None
         result = ZabbixTriggerPrototype(
             self.zapi,
             prototype,
             self.config,
-            self.template_id).push()
+            self.template_id).apply()
         self._progressbar_update()
         return result
 
-    def _push_trigger_prototypes(self, discovery):
+    def _apply_trigger_prototypes(self, discovery):
         triggers = discovery.get('triggers', [])
         for triggers in triggers:
-            self._push_trigger_prototype(triggers)
+            self._apply_trigger_prototype(triggers)
 
-    def _push_autoreg(self):
+    def _apply_autoreg(self):
         result = None
         autoreg = self.template.get('autoreg')
         if autoreg:
-            result = ZabbixAutoreg(self.zapi, self.template).push()
+            result = ZabbixAutoreg(self.zapi, self.template).apply()
             self._progressbar_update()
 
-    def _push_trigger_action(self):
+    def _apply_trigger_action(self):
         result = None
         alert = self.template.get('alert')
         if alert:
@@ -371,29 +371,29 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
                 self.zapi,
                 self.template,
                 self.config,
-                self.template_id).push()
+                self.template_id).apply()
             self._progressbar_update()
         return result
 
-    def _push_discovery(self, discovery):
+    def _apply_discovery(self, discovery):
         result = None
         result = ZabbixDiscovery(
             self.zapi,
             discovery,
             self.config,
-            self.template_id).push()
+            self.template_id).apply()
         self._progressbar_update()
         return result
 
-    def _push_discoveries(self):
+    def _apply_discoveries(self):
         discoveries = self.template.get('discovery', {})
 
         for app, discovery in discoveries.iteritems():
-            app_id = self._push_app(app)
-            self._push_discovery(discovery)
-            self._push_item_prototypes(discovery, app_id)
-            self._push_graph_prototypes(discovery)
-            self._push_trigger_prototypes(discovery)
+            app_id = self._apply_app(app)
+            self._apply_discovery(discovery)
+            self._apply_item_prototypes(discovery, app_id)
+            self._apply_graph_prototypes(discovery)
+            self._apply_trigger_prototypes(discovery)
 
     def _disable_item(self, id_):
         result = None
@@ -411,9 +411,9 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
 
         self._progressbar_update()
 
-    def push(self):
-        self._push_linked_templates()
-        self.template_id = self._push_template(self.template)
+    def apply(self):
+        self._apply_linked_templates()
+        self.template_id = self._apply_template(self.template)
 
         # Push apps
         apps = self.template.get('applications', {})
@@ -423,12 +423,12 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
             if str(items).lower() == 'disabled':
                 self._disable_app(app)
             else:
-                app_id = self._push_app(app)
-                self._push_items(items, app_id)
+                app_id = self._apply_app(app)
+                self._apply_items(items, app_id)
 
-        self._push_macros()
-        self._push_graphs()
-        self._push_triggers()
-        self._push_discoveries()
-        self._push_autoreg()
-        self._push_trigger_action()
+        self._apply_macros()
+        self._apply_graphs()
+        self._apply_triggers()
+        self._apply_discoveries()
+        self._apply_autoreg()
+        self._apply_trigger_action()

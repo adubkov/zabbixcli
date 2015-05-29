@@ -51,7 +51,7 @@ class ZabbixObject(object):
 
     return result
 
-  def push(self):
+  def apply(self):
     """
     Push this object to zabbix server.
     """
@@ -59,7 +59,7 @@ class ZabbixObject(object):
     result = None
     req = self._create_request()
     func = self._func(req)
-    logger.debug('{func}: {req}'.format(func=func, req=req))
+    logger.debug('%s: %s', func, req)
     result = eval(func)(req)
 
     return result

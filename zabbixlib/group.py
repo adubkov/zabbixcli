@@ -20,7 +20,7 @@ class ZabbixGroup(object):
         self.with_id = with_id
         self.obj_type = 'hostgroup'
 
-    def push(self):
+    def apply(self):
         """
         Push hostgroup\group object to zabbix server.
         """
@@ -50,14 +50,14 @@ class ZabbixGroups(object):
         self.zapi = zapi
         self.groups = groups
 
-    def push(self):
+    def apply(self):
         """
         Push hostgroups\groups object to zabbix server.
         """
 
         result = []
         for group in self.groups:
-            groupid = ZabbixGroup(self.zapi, group, with_id=True).push()
+            groupid = ZabbixGroup(self.zapi, group, with_id=True).apply()
             if groupid:
                 result.append(groupid)
         return result
