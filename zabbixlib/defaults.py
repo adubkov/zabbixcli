@@ -108,7 +108,7 @@ class ZabbixDefaults(dict):
                                   "{HOST.NAME1}:[{ITEM.NAME1}]: {ITEM.VALUE1}"),
                 'eventsource': 0,       # Trigger handle
                 'eval': 0,              # AND/OR: 0, AND: 1, OR: 2
-                'escalation_time': 300, # Must be >60s
+                'escalation_time': 300,  # Must be >60s
                 'to': 'Email',          # Email: 1
                 'action': 'message',
                 'cmp': '>=',

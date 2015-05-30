@@ -2,7 +2,7 @@ import logging
 from object import ZabbixObject
 
 # Connect to logger object
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class ZabbixApp(ZabbixObject):
@@ -28,6 +28,8 @@ class ZabbixApp(ZabbixObject):
         """
         result = None
 
+        log.info("%s: '%s'", str(self.obj_type).capitalize(), self.obj)
+
         # Get 'application' object id
         obj_id = self.zapi.get_id(
             'application',
@@ -42,7 +44,7 @@ class ZabbixApp(ZabbixObject):
                 'hostid': self.template_id
             }
 
-            logger.debug('call: sync_app({name}, {hostid})'.format(**app))
+            log.debug('call: sync_app({name}, {hostid})'.format(**app))
             result = self.zapi.application.create(app)
             result = result['applicationids'][0]
         return result

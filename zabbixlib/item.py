@@ -1,7 +1,7 @@
 import logging
 from object import ZabbixObject
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class ZabbixItem(ZabbixObject):

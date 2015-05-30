@@ -1,7 +1,7 @@
 import logging
 from object import ZabbixObject
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class ZabbixGraph(ZabbixObject):
@@ -179,7 +179,7 @@ class ZabbixGraph(ZabbixObject):
             req.update(
                 {'ymax_itemid': self._get_y_value(req['ymax_type'], self.obj.get('y_max')), })
 
-        logger.debug('Stacked graph:')
+        log.debug('Stacked graph:')
 
     def _normal_graph_req(self, req):
         """
@@ -195,7 +195,7 @@ class ZabbixGraph(ZabbixObject):
                     'percent_left': self.obj.get('percent_left',
                                                  self.defaults['default']['graph']['percent_left']),
                     })
-        logger.debug('Normal graph:')
+        log.debug('Normal graph:')
 
     def _pie_graph_req(self, req):
         """
@@ -218,7 +218,7 @@ class ZabbixGraph(ZabbixObject):
                         self.obj.get(
                             '3d_view',
                             self.defaults['default']['graph']['show_legend'])))})
-        logger.debug('Pie graph:')
+        log.debug('Pie graph:')
 
     def _exploded_graph_req(self, req):
         """
@@ -228,7 +228,7 @@ class ZabbixGraph(ZabbixObject):
         """
 
         self._pie_graph_req(req)
-        logger.debug('Exploded graph:')
+        log.debug('Exploded graph:')
 
     def apply(self):
         """
@@ -237,6 +237,8 @@ class ZabbixGraph(ZabbixObject):
 
         result = None
         req = self._create_request()
+
+        log.info("%s: '%s'", str(self.obj_type).capitalize(), self.obj['name'])
 
         # Get 'graph' or 'graphprototype' object id
         obj_id = self.zapi.get_id(
@@ -253,7 +255,7 @@ class ZabbixGraph(ZabbixObject):
         func = "self.zapi.{obj_type}.{zbx_method}".format(
             obj_type=self.obj_type,
             zbx_method=zbx_method)
-        logger.debug('%s: %s', func, req)
+        log.debug('%s: %s', func, req)
         result = eval(func)(req)
 
         return result

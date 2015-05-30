@@ -3,7 +3,7 @@ from group import ZabbixGroups
 from object import ZabbixObject
 
 # Connect to logger object
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class ZabbixAutoreg(ZabbixObject):
@@ -87,8 +87,10 @@ class ZabbixAutoreg(ZabbixObject):
         result = None
         req = self._create_request()
 
+        log.info("Auto-registration: '%s'", req['name'])
+
         # Get 'action' object id
-        logger.debug('ZabbixAutoreg._create_request: %s', req)
+        log.debug('ZabbixAutoreg._create_request: %s', req)
         obj_id = self.zapi.get_id('action', req['name'])
 
         if obj_id:

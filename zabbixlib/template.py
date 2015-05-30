@@ -5,7 +5,7 @@ import yaml
 import pprint
 from group import ZabbixGroups
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class ZabbixTemplate(object):
@@ -39,6 +39,7 @@ class ZabbixTemplate(object):
 
         result = None
         req = self._create_request()
+        log.info("%s: '%s'", str(self.obj_type).capitalize(), self.obj['name'])
 
         # Get linked templates id
         if self.obj.get('templates'):
@@ -102,7 +103,7 @@ class ZabbixTemplateFile(dict):
 
         return result
 
-    def _merge(self, template1, template2):
+    def _merge(self, t1, t2):
         """
         Merge two templates.
 
@@ -122,7 +123,7 @@ class ZabbixTemplateFile(dict):
                 else:
                     t1[k] = v
 
-        logger.debug('Template result:\n%s', t1)
+        log.debug('Template result:\n%s', t1)
 
     def _load(self):
         """
@@ -137,53 +138,19 @@ class ZabbixTemplateFile(dict):
                 str_buf = f.read()
                 # Load template
                 template = yaml.safe_load(str_buf)
-                logger.debug(
+                log.debug(
                     'Loaded template[%s]:\n%s',
-                        file_,
-                        template)
+                    file_,
+                    template)
                 # Merge template
                 self._merge(result, template)
 
         # Save template in class variable
         self.template = result
-        logger.info('Template %s was fully loaded.', self.name)
-        logger.debug('Combined template:\n%s', result)
+        log.info("Template '%s' was fully loaded.", result['name'])
+        log.debug('Combined template:\n%s', result)
 
         return result
-
-    def __len__(self):
-        """
-        Return count of elements to process.
-        """
-
-        # TODO: Needs to refactor
-        length = 1
-        length += len(self.template.get('triggers', []))
-        length += len(self.template.get('graphs', []))
-        if self.template.get('alert', []):
-            length += 1
-        if self.template.get('autoreg', []):
-            autoreg_len = len(self.template['autoreg'].get('add_to_group', []))
-            if autoreg_len == 0 and self.template['autoreg'].get('metadata'):
-                length += 1
-            else:
-                length += autoreg_len
-
-        length += len(self.template.get('macros', []))
-        for app, items in self.template.get('applications', {}).iteritems():
-            if isinstance(items, list):
-                length += len(items) + 1
-            else:
-                length += 1
-
-        length += len(self.template.get('discovery', {}))
-        for app, discovery in self.template.get('discovery', {}).iteritems():
-            length += len(discovery.get('items', []))
-            length += len(discovery.get('graphs', []))
-            length += len(discovery.get('triggers', []))
-            length += 1  # app
-
-        return length
 
     def __getitem__(self, item, value=None):
         return self.template.get(item, value)

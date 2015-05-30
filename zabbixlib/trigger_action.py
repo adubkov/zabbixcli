@@ -3,7 +3,7 @@ from group import ZabbixGroups
 from object import ZabbixObject
 
 # Connect to logger object
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class ZabbixTriggerAction(ZabbixObject):
@@ -151,8 +151,10 @@ class ZabbixTriggerAction(ZabbixObject):
         result = None
         req = self._create_request()
 
+        log.info("%s: '%s'", str(self.obj_type).capitalize(), req['name'])
+
         # Get 'action' object id
-        logger.debug(
+        log.debug(
             'ZabbixTriggerAction._create_request: {req}'.format(
                 req=req))
         obj_id = self.zapi.get_id('action', req['name'])

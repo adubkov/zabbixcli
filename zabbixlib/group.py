@@ -1,6 +1,6 @@
 import logging
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class ZabbixGroup(object):
@@ -26,6 +26,9 @@ class ZabbixGroup(object):
         """
 
         result = None
+
+        log.info("%s: '%s'", str(self.obj_type).capitalize(), self.group)
+
         result = self.zapi.get_id('hostgroup', self.group)
         if not result:
             result = int(

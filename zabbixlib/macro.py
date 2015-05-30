@@ -1,7 +1,7 @@
 import logging
 from object import ZabbixObject
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class ZabbixMacro(ZabbixObject):
@@ -45,8 +45,10 @@ class ZabbixMacro(ZabbixObject):
         result = None
         req = self._create_request()
 
+        log.info("%s: '%s'", str(self.obj_type).capitalize(), req['macro'])
+
         # Get 'macro' object id
-        logger.debug('ZabbixMacro._create_request: %s', req)
+        log.debug('ZabbixMacro._create_request: %s', req)
         obj_id = self.zapi.get_id(
             'usermacro',
             req['macro'],

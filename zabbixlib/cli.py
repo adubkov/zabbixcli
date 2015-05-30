@@ -1,9 +1,6 @@
-import fcntl
 import json
 import logging
-import struct
 import sys
-import termios
 import os
 
 try:
@@ -27,7 +24,7 @@ from trigger_action import ZabbixTriggerAction
 from zabbix.api import ZabbixAPI
 
 # Connect to logger object
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class ZabbixCLIArguments(object):
@@ -118,74 +115,28 @@ class ZabbixCLIArguments(object):
                     self.argparser.parse_args()).items()))
 
 
-class ProgressBar(object):
+class ZabbixCLI(ZabbixCLIArguments):
 
-    """
-    Draw a progress bar in terminal
-    """
-
-    def __init__(self, obj):
-        self.w, self.h = self._getTerminalSize()
-        self.obj = obj
-        self.obj_len = len(self.obj)
-
-    def _getTerminalSize(self):
-        """
-        Return current terminal Height and Width in chars
-        """
-
-        if os.isatty(0):
-            # Create parameter
-            param = struct.pack('HHHH', 0, 0, 0, 0)
-            # Get terminal info
-            op_result = fcntl.ioctl(0, termios.TIOCGWINSZ, param)
-            # Unpack result data
-            h, w, hp, wp = struct.unpack('HHHH', op_result)
+    def _configureLogging(self):
+        # Set logging level
+        if self.args.get('debug'):
+            logLevel = logging.DEBUG
         else:
-            w, h = 80, 40
-        return w, h
+            logLevel = logging.INFO
 
-    def _progressbar_update(self):
-        """
-        Update progressbar state
-        """
-
-        self.obj.processed_items += 1
-        # calculate count of #
-        self.x = self.w - 8 - (len(str(self.obj_len)) * 2)
-        # calculate shift of #
-        self.y = int(self.x / float(self.obj_len) * self.obj.processed_items)
-        # update screen
-        self._print()
-
-    def _print(self):
-        """
-        Print progressbar state on screen
-        """
-
-        s = '\r [{0:#>{3}}] {1}/{2}\r'.format(
-            ' ' * (self.x - self.y), self.obj.processed_items, self.obj_len, self.x)
-        sys.stdout.write(s)
-        # if EOL write \n
-        if self.y == self.x:
-            sys.stdout.write('\n')
-        # flush buffer to screen
-        sys.stdout.flush()
-
-
-class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
+        colors = {'reset': '\033[0m', 'green': '\x1b[32m', 'cyan': '\x1b[36m'}
+        logFormat = '{reset}{cyan}[{green}%(asctime)s{cyan}]{reset} %(message)s'.format(
+            **colors)
+        logging.basicConfig(
+            level=logLevel,
+            format=logFormat,
+            datefmt='%m/%d/%Y %H:%M:%S')
 
     def __init__(self, template=None):
         ZabbixCLIArguments.__init__(self)
 
-        # Set logging level
-        if self.args.get('debug'):
-            logging.basicConfig(
-                level=logging.DEBUG,
-                format='%(asctime)s %(message)s',
-                datefmt='%m/%d/%Y %I:%M:%S %p')
-
-        logger.debug('Parser arguments: %s', self.args)
+        self._configureLogging()
+        log.debug('Parser arguments: %s', self.args)
 
         # if no arguments - print help
         if len(sys.argv) <= 1:
@@ -212,9 +163,14 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
                             {'name': self.args['delete'][2]},
                             template_id=template_id,
                             obj_type=self.args['delete'][0]).delete():
-                print '"{2}" {0} was deleted from "{1}"'.format(*self.args['delete'])
+                log.info(
+                    '"{2}" {0} was deleted from "{1}"'.format(
+                        *self.args['delete']))
             else:
-                print 'Error while trying to delete: "{2}" {0} from "{1}"'.format(*self.args['delete'])
+                log.exit(
+                    'Error while trying to delete: "{2}" {0} from "{1}"'.format(
+                        *
+                        self.args['delete']))
             exit()
 
         if template:
@@ -227,30 +183,25 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
 
         if self.template:
             self.config = ZabbixDefaults()
-            ProgressBar.__init__(self, self.template)
-
             # Start applying process
             self.apply()
 
     def _apply_linked_templates(self):
         if self.template.get('templates') and not self.args.get('only', False):
-            print self.template.get('name') + ' depends from:'
+            log.info('%s depends from:', self.template.get('name'))
             for linked_template in self.template.get('templates', []):
-                print "\t{0}".format(linked_template)
+                log.info("\t\t%s", linked_template)
             for linked_template in self.template.get('templates', []):
                 ZabbixCLI(template=linked_template)
 
     def _apply_template(self, template):
         result = None
-        print('Syncing : {0}'.format(template['name']))
         result = ZabbixTemplate(self.zapi, template).apply()
-        self._progressbar_update()
         return result
 
     def _apply_macro(self, macro):
         result = None
         result = ZabbixMacro(self.zapi, macro, self.template_id).apply()
-        self._progressbar_update()
         return result
 
     def _apply_macros(self):
@@ -260,7 +211,6 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
     def _apply_app(self, app):
         result = None
         result = ZabbixApp(self.zapi, app, self.template_id).apply()
-        self._progressbar_update()
         return result
 
     def _apply_item(self, item):
@@ -270,7 +220,6 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
             item,
             self.config,
             self.template_id).apply()
-        self._progressbar_update()
         return result
 
     def _apply_items(self, items, app_id):
@@ -285,7 +234,6 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
             prototype,
             self.config,
             self.template_id).apply()
-        self._progressbar_update()
         return result
 
     def _apply_item_prototypes(self, discovery, app_id):
@@ -305,7 +253,6 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
             graph,
             self.config,
             self.template_id).apply()
-        self._progressbar_update()
         return result
 
     def _apply_graphs(self):
@@ -319,7 +266,6 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
             prototype,
             self.config,
             self.template_id).apply()
-        self._progressbar_update()
         return result
 
     def _apply_graph_prototypes(self, discovery):
@@ -334,7 +280,6 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
             trigger,
             self.config,
             self.template_id).apply()
-        self._progressbar_update()
         return result
 
     def _apply_triggers(self):
@@ -348,7 +293,6 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
             prototype,
             self.config,
             self.template_id).apply()
-        self._progressbar_update()
         return result
 
     def _apply_trigger_prototypes(self, discovery):
@@ -361,7 +305,6 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
         autoreg = self.template.get('autoreg')
         if autoreg:
             result = ZabbixAutoreg(self.zapi, self.template).apply()
-            self._progressbar_update()
 
     def _apply_trigger_action(self):
         result = None
@@ -372,7 +315,6 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
                 self.template,
                 self.config,
                 self.template_id).apply()
-            self._progressbar_update()
         return result
 
     def _apply_discovery(self, discovery):
@@ -382,7 +324,6 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
             discovery,
             self.config,
             self.template_id).apply()
-        self._progressbar_update()
         return result
 
     def _apply_discoveries(self):
@@ -409,8 +350,6 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
         for item in items:
             self._disable_item(item)
 
-        self._progressbar_update()
-
     def apply(self):
         self._apply_linked_templates()
         self.template_id = self._apply_template(self.template)
@@ -432,3 +371,4 @@ class ZabbixCLI(ZabbixCLIArguments, ProgressBar):
         self._apply_discoveries()
         self._apply_autoreg()
         self._apply_trigger_action()
+        log.info("Done.")

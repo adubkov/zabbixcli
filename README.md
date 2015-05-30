@@ -33,21 +33,23 @@ The tool usage guide can be found by running zabbixcli with `-h` flag
 $ zabbixcli -h
 
 usage: zabbixcli [-h] [-t TEMPLATE] [-s SERVER] [-u USER] [-p PASS] [-o] [-d]
-                 [-D DELETE [DELETE...]]
+                 [-D DELETE [DELETE ...]]
 
 Template based zabbix configuration tool
 
 optional arguments:
-  -h, --help                          Show this help message and exit
-  -t TEMPLATE,  --template TEMPLATE   Template name for sync
-  -s SERVER,    --server SERVER       Zabbix server URL
-  -u USER,      --user USER           Zabbix user name
-  -p PASS,      --pass PASS           Zabbix user password
-  -o, --only                          Sync only specified templates
-  -d, --debug                         Enable debug mode
+  -h, --help            show this help message and exit
+  -t TEMPLATE, --template TEMPLATE
+                        Template name for sync
+  -s SERVER, --server SERVER
+                        Zabbix server URL
+  -u USER, --user USER  Zabbix user name
+  -p PASS, --pass PASS  Zabbix user password
+  -o, --only            Sync only specified templates
+  -d, --debug           Enable debug mode
   -D DELETE [DELETE ...], --delete DELETE [DELETE ...]
-                                      Delete object from zabbix.
-  Example: -D item "Template OS Linux" "Available memory"
+                        Delete object from zabbix. Example: -D item "Template
+                        OS Linux" "Available memory"
 ``` 
 
 #### Configure zabbixcli
@@ -55,7 +57,7 @@ First you should configure zabbixcli to works with appropriate zabbix server and
 You can either specify these as command arguments, or use environment varible, or mix them.
 >**Notice:** Command line arguments have precedence over environment variables.
 
-```yaml
+```bash
 cat >> ~/.bash_profile <<'EOM'
 # Cretentials for zabbixcli
 export ZBXCLI_USER='admin'
@@ -65,15 +67,12 @@ EOM
 ```
 
 #### Apply default template
-```yaml
-$ cd devops/config/zabbix/templates
-$ ls
-Template OS Linux
-
-$ zabbixcli -t ./"Template OS Linux"
-
-Syncing : Template OS Linux
- [####################################################################] 56/56
+Go to template directory and run:
+```bash
+$ zabbixcli -t ./
+[05/29/2015 23:48:54] Template 'Template OS Linux' was fully loaded.
+...
+[05/29/2015 23:48:55] Done.
 ```
 
 #### Delete object from zabbix
@@ -88,7 +87,7 @@ Ok, now you know something about zabbixcli, and started store your zabbix config
 
 You can use [zabbixcli-worker](https://github.com/blacked/zabbixcli/blob/master/zabbixcli-worker) as cronjob to run every minute:
 
-```yaml
+```bash
 $ crontab -e
 # Apply changes to zabbix
 */1 * * * * /usr/local/bin/zabbixcli-worker ~/repo/ configs/zabbix/templates/ >> /var/log/zabbixcli-worker 2>&1
@@ -115,11 +114,11 @@ it to zabbix.
 
 #### Describe a template
 First we need to create a directory for our template:
-```yaml
+```bash
 $ mkdir "Template MyApp"
 $ cd ./"Template MyApp"
 ```
-Then, we need to create init template file.
+Then, we should to create init template file.
 > Template should be written in yaml format.
 
 When zabbixcli runs it search all `*.yaml` files in this directory, subdirectories and merge them. So you can specify all setting in one huge init.yaml file, or split it to multiple.
@@ -195,6 +194,12 @@ triggers:
     name:           "MyApp service is not running on {HOST.NAME}"
     warn_level:     "Warning"
     expression:     "{Template MyApp:proc.num[,,,myapp].last(#1)}=0"
+```
+
+All you need to do now to apply this template to zabbix is run zabbixcli:
+```bash
+cd ./"Template MyApp" 
+zabbixcli -t ./
 ```
 
 #### Create a Role
