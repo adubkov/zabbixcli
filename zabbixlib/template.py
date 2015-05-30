@@ -107,22 +107,22 @@ class ZabbixTemplateFile(dict):
         Merge two templates.
 
         Attributes:
-          template1 (dict)
-          template2 (dict)
+          t1 (dict)
+          t2 (dict)
         """
 
-        for k, v in template2.iteritems():
-            if template1.get(k, {}) == {}:
-                template1[k] = v
+        for k, v in t2.iteritems():
+            if t1.get(k, {}) == {}:
+                t1[k] = v
             else:
-                if isinstance(template2.get(k, {}), dict):
-                    template1.get(k, {}).update(v)
-                elif isinstance(template2.get(k), list):
-                    template1.get(k).extend(v)
+                if isinstance(t2.get(k, {}), dict):
+                    t1.get(k, {}).update(v)
+                elif isinstance(t2.get(k), list):
+                    t1.get(k).extend(v)
                 else:
-                    template1[k] = v
+                    t1[k] = v
 
-        logger.debug('Template result:\n%s', template1)
+        logger.debug('Template result:\n%s', t1)
 
     def _load(self):
         """
@@ -149,47 +149,6 @@ class ZabbixTemplateFile(dict):
         logger.info('Template %s was fully loaded.', self.name)
         logger.debug('Combined template:\n%s', result)
 
-        return result
-
-    def save(self):
-        """
-        *** Experemental function ***
-        *** Save your eyes - don't read the code ***
-
-        Save dump of config to disk.
-        """
-
-        result = {}
-        for k, v in self.template.iteritems():
-            if isinstance(v, dict):
-                result[k] = []
-                if k == 'application':
-                    for app, items in self.template['application'].iteritems():
-                        file_ = '{0}/items/{1}{2}'.format(
-                            self.basedir,
-                            app.lower(),
-                            self.file_extension)
-                        result['application'].append(file_)
-                        str_buf = yaml.safe_dump(items)
-                        with open(file_ + '_', 'w') as f:
-                            f.write(str_buf)
-                elif k == 'triggers':
-                    file_ = '{0}/triggers{1}'.format(
-                        self.basedir,
-                        self.file_extension)
-                    result['triggers'].append(file_)
-
-                    str_buf = yaml.safe_dump(v)
-                    with open(file_ + '_', 'w') as f:
-                        f.write(str_buf)
-        file_ = '{0}/init{1}'.format(self.basedir, self.file_extension)
-        result['init'] = file_
-        init_template = dict(
-            (k, v) for k, v in self.template.iteritems() if not isinstance(
-                v, dict))
-        str_buf = yaml.safe_dump(init_template)
-        with open(result['init'] + '_', 'w') as f:
-            f.write(str_buf)
         return result
 
     def __len__(self):
