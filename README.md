@@ -60,19 +60,24 @@ You can either specify these as command arguments, or use environment varible, o
 ```bash
 cat >> ~/.bash_profile <<'EOM'
 # Cretentials for zabbixcli
-export ZBXCLI_USER='admin'
-export ZBXCLI_PASS='zabbix'
-export ZBXCLI_URL='https://localhost'
+export ZBXCLI_USER=admin
+export ZBXCLI_PASS=zabbix
+export ZBXCLI_URL=https://localhost
+export ZBXCLI_TEMPLATES=~/zabbix_templates
 EOM
 ```
 
 #### Apply default template
-Go to template directory and run:
+Just run: 
 ```bash
-$ zabbixcli -t ./
+$ zabbixcli -t "Template OS Linux"
 [05/29/2015 23:48:54] Template 'Template OS Linux' was fully loaded.
 ...
 [05/29/2015 23:48:55] Done.
+```
+or go to template directory and run:
+```bash
+$ zabbixcli -t ./
 ```
 
 #### Delete object from zabbix

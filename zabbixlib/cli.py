@@ -50,7 +50,8 @@ class ZabbixCLIArguments(object):
         args_map = {
             'ZBXCLI_USER': 'user',
             'ZBXCLI_PASS': 'pass',
-            'ZBXCLI_URL': 'server'}
+            'ZBXCLI_URL': 'server',
+            'ZBXCLI_TEMPLATES': 'templates_dir',}
 
         # Load env variables
         for ev, arg in args_map.iteritems():
@@ -130,7 +131,7 @@ class ZabbixCLI(ZabbixCLIArguments):
         logging.basicConfig(
             level=logLevel,
             format=logFormat,
-            datefmt='%m/%d/%Y %H:%M:%S')
+            datefmt='%d/%m/%Y %H:%M:%S')
 
     def __init__(self, template=None):
         ZabbixCLIArguments.__init__(self)
@@ -169,8 +170,7 @@ class ZabbixCLI(ZabbixCLIArguments):
             else:
                 log.exit(
                     'Error while trying to delete: "{2}" {0} from "{1}"'.format(
-                        *
-                        self.args['delete']))
+                        *self.args['delete']))
             exit()
 
         if template:
@@ -178,7 +178,7 @@ class ZabbixCLI(ZabbixCLIArguments):
         else:
             self.template_name = self.args.get('template')
 
-        self.template = ZabbixTemplateFile(self.template_name)
+        self.template = ZabbixTemplateFile(self.template_name, templates_dir=self.args.get('templates_dir'))
         self.template_id = None
 
         if self.template:
@@ -354,7 +354,6 @@ class ZabbixCLI(ZabbixCLIArguments):
         self._apply_linked_templates()
         self.template_id = self._apply_template(self.template)
 
-        # Push apps
         apps = self.template.get('applications', {})
 
         for app, items in apps.iteritems():
@@ -371,4 +370,4 @@ class ZabbixCLI(ZabbixCLIArguments):
         self._apply_discoveries()
         self._apply_autoreg()
         self._apply_trigger_action()
-        log.info("Done.")
+        log.info("Done: '%s'", self.template.get('name'))

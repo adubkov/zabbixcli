@@ -66,8 +66,9 @@ class ZabbixObject(object):
         result = None
         req = self._create_request()
         log.info(
-            "%s: '%s'", str(
-                self.obj_type).capitalize(), self.obj.get('name'))
+                "%s: '%s'",
+                str(self.obj_type).capitalize(),
+                self.obj.get('name'))
         func = self._func(req)
         log.debug('%s: %s', func, req)
         result = eval(func)(req)
