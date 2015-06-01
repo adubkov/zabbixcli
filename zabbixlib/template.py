@@ -1,8 +1,8 @@
 import fnmatch
 import logging
 import os
-import yaml
 import pprint
+import yaml
 from group import ZabbixGroups
 
 log = logging.getLogger(__name__)
@@ -79,28 +79,50 @@ class ZabbixTemplateFile(dict):
             name,
             pattern='*',
             basedir='./',
-            file_extension='.yaml'):
+            file_extension='.yaml',
+            templates_dir=None):
         self.name = name
         self.file_extension = file_extension
         self.pattern = pattern + self.file_extension
         self.basedir = '{0}/{1}'.format(basedir, name)
+        self.templates_dir = templates_dir
         # Load template from files
-        self.temlate = {}
+        self.template = {}
         self.processed_items = 0
-        self._files_list = self._walk()
-        self._load()
+        self.template = self._load(self.basedir)
 
-    def _walk(self):
+    def _walk(self, basedir):
         """
         Return list of files for current template
         """
 
         result = []
 
-        for root, dirs, files in os.walk(self.basedir):
+        for root, dirs, files in os.walk(basedir):
             for file_ in fnmatch.filter(files, self.pattern):
                 result.append(os.path.join(root, file_))
 
+        return result
+
+    def _search(self):
+        """
+        Try to find template in template_dir
+        """
+
+        result = None
+
+        # get list of files
+        files_list = self._walk(self.templates_dir)
+
+        for file_ in files_list:
+            with open(file_, 'r') as f:
+                line = f.readline()
+                if line[0:5] == 'name:':
+                    name = line[5:].strip(' \'\"\n')
+                    if name == self.name:
+                        result = os.path.dirname(file_)
+                        log.debug('Found Template: "%s" in %s', name, result)
+                        break
         return result
 
     def _merge(self, t1, t2):
@@ -125,30 +147,38 @@ class ZabbixTemplateFile(dict):
 
         log.debug('Template result:\n%s', t1)
 
-    def _load(self):
+    def _load(self, basedir):
         """
         Load current template from files and save it class variable.
         """
 
         result = {}
 
-        for file_ in self._files_list:
+        files_list = self._walk(basedir)
+        log.debug("Template files list: %s", files_list)
+
+        for file_ in files_list:
             # Read template file
             with open(file_) as f:
                 str_buf = f.read()
                 # Load template
                 template = yaml.safe_load(str_buf)
                 log.debug(
-                    'Loaded template[%s]:\n%s',
+                    'Template loaded from "%s":\n%s',
                     file_,
                     template)
                 # Merge template
                 self._merge(result, template)
 
-        # Save template in class variable
-        self.template = result
-        log.info("Template '%s' was fully loaded.", result['name'])
-        log.debug('Combined template:\n%s', result)
+        if not result:
+            log.debug("Trying find template in %s", self.templates_dir)
+            template_dir = self._search()
+            if template_dir:
+                result = self._load(template_dir)
+        else:
+            # Save template in class variable
+            log.debug('Combined template:\n%s', result)
+            log.info("Template '%s' was fully loaded.", result['name'])
 
         return result
 

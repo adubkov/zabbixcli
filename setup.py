@@ -6,7 +6,7 @@ setup(name='zabbixcli',
       author = 'Alexey Dubkov',
       author_email = 'alexey.dubkov@gmail.com',
       packages = find_packages(),
-      scripts = ['zabbixcli'],
+      scripts = ['zabbixcli','zabbixcli-worker'],
       install_requires = ["argparse", "py-zabbix"],
       url = 'https://github.com/blacked/zabbixcli',
      )
