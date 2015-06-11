@@ -36,19 +36,20 @@ class ZabbixTriggerAction(ZabbixObject):
         if self.obj.get('alert'):
             result['name'] = 'Alert for "{role}" Team'.format(
                 role=self.obj['name'])
-            result['def_shortdata'] = self.defaults[
-                'default']['alert']['subject']
-            result['def_longdata'] = self.defaults['default']['alert']['text']
+            result['def_shortdata'] = self.obj['alert'].get('subject',
+                    self.defaults['default']['alert']['subject'])
+            result['def_longdata'] = self.obj['alert'].get('text',
+                    self.defaults['default']['alert']['text'])
 
             if bool(
                 self.obj.get(
                     'recovery',
                     self.defaults['default']['alert']['recovery'])):
                 result['recovery_msg'] = 1
-                result['r_shortdata'] = self.defaults[
-                    'default']['alert']['recovery_subject']
-                result['r_longdata'] = self.defaults[
-                    'default']['alert']['recovery_text']
+                result['r_shortdata'] = self.obj['alert'].get('recovery_subject',
+                        self.defaults['default']['alert']['recovery_subject'])
+                result['r_longdata'] = self.obj['alert'].get('recovery_text',
+                        self.defaults['default']['alert']['recovery_text'])
 
             result['eventsource'] = self.defaults[
                 'default']['alert']['eventsource']
@@ -77,20 +78,7 @@ class ZabbixTriggerAction(ZabbixObject):
                     'trigger_status',
                     self.defaults['default']['alert']['trigger_status']).lower())
 
-            if 'group' in self.obj['alert']:
-                conditiontype = 0
-                conditionvalue = self.zapi.get_id(
-                    'hostgroup',
-                    self.obj['alert']['group'])
-            else:
-                conditiontype = 13
-                conditionvalue = self.template_id
-
             result['conditions'] = [
-                # actionid: Template - 13, like - 2
-                {'conditiontype': conditiontype,
-                 'operator': 0,
-                 'value': conditionvalue},
                 # actionid: Mainenance status - 16, not in - 7
                 {'conditiontype': 16, 'operator': 7},
                 # actionid: Trigger value - 5, equal - 0, PROBLEM - 1
@@ -102,6 +90,21 @@ class ZabbixTriggerAction(ZabbixObject):
                  'operator': alert_severity_cmp,
                  'value': alert_severity},
             ]
+
+            if 'group' in self.obj['alert']:
+                result['conditions'].append({
+                    'conditiontype': 0,
+                    'operator': 0,
+                    'value': self.zapi.get_id(
+                        'hostgroup',
+                        self.obj['alert']['group'])
+                    })
+            elif not 'all' in self.obj['alert']:
+                # actionid: Template - 13, like - 2
+                result['conditions'].append({
+                    'conditiontype': 13,
+                    'operator': 0,
+                    'value': self.template_id})
 
             result['operations'] = []
 
@@ -125,8 +128,8 @@ class ZabbixTriggerAction(ZabbixObject):
                                 'mediatypeid': self.zapi.get_id(
                                     'mediatype',
                                     op.get(
-                                        'to',
-                                        self.defaults['default']['alert']['to'])),
+                                        'over',
+                                        self.defaults['default']['alert']['over'])),
                                 'default_msg': 1,
                             }})
 
