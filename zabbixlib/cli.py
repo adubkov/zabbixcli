@@ -209,7 +209,7 @@ class ZabbixCLI(ZabbixCLIArguments):
                 ZabbixCLI(template=linked_template)
 
     def _apply_template(self, template):
-        ZabbixTemplate(self.zapi, template).apply()
+        return ZabbixTemplate(self.zapi, template).apply()
 
     def _apply_macro(self, macro):
         ZabbixMacro(self.zapi, macro, self.template_id).apply()
@@ -219,7 +219,7 @@ class ZabbixCLI(ZabbixCLIArguments):
             self._apply_macro(macro)
 
     def _apply_app(self, app):
-        ZabbixApp(self.zapi, app, self.template_id).apply()
+        return ZabbixApp(self.zapi, app, self.template_id).apply()
 
     def _apply_item(self, item):
         ZabbixItem(self.zapi, item, self.config, self.template_id).apply()
@@ -351,7 +351,7 @@ class ZabbixCLI(ZabbixCLIArguments):
                             # Make function to remove object
                             func = 'self.zapi.{object_type}.delete'.format(object_type=type_)
                             log.info('Unused: %s \'%s\' was removed', type_, name)
-                            eval(func)(object_id)
+                            # eval(func)(object_id)
 
         # Init lists for objects
         items = apps = discovery = itemprototype = graphprototype = triggerprototype = []
