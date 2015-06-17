@@ -9,7 +9,6 @@ It current supports the following:
 * Macros
 
 What it's doesn't support yet, but highly desirable:
-* It doesn't remove unused items from template. If you remove something from YAML-template, and apply these changes to zabbix, this something, will continue exist in zabbix, and it require manual cleanup
 * It doesn't flush zabbix configuration
 * No users\groups management yet
 * No medias yet
