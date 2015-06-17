@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='zabbixcli',
-      version = '1.0.2',
+      version = '1.0.3',
       description = 'Tool for manage zabbix templates as YAML files.',
       author = 'Alexey Dubkov',
       author_email = 'alexey.dubkov@gmail.com',
