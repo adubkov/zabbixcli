@@ -16,12 +16,13 @@ class ZabbixTriggerAction(ZabbixObject):
     obj   (dict)        Dictionary discribed zabbix application template.
     """
 
-    def __init__(self, zapi, obj, defaults, template_id):
+    def __init__(self, zapi, obj, defaults, template_id, template_name):
         self.zapi = zapi
         self.obj = obj
         self.obj_type = 'action'
         self.defaults = defaults
         self.template_id = template_id
+        self.template_name = template_name
         ZabbixObject(self.zapi, self.obj)
 
     def _create_request(self):
@@ -33,12 +34,11 @@ class ZabbixTriggerAction(ZabbixObject):
 
         result = {}
 
-        if self.obj.get('alert'):
-            result['name'] = 'Alert for "{role}" Team'.format(
-                role=self.obj['name'])
-            result['def_shortdata'] = self.obj['alert'].get('subject',
+        if self.obj:
+            result['name'] = '{0}: {1}'.format(self.template_name, self.obj['name'])
+            result['def_shortdata'] = self.obj.get('subject',
                     self.defaults['default']['alert']['subject'])
-            result['def_longdata'] = self.obj['alert'].get('text',
+            result['def_longdata'] = self.obj.get('text',
                     self.defaults['default']['alert']['text'])
 
             if bool(
@@ -46,35 +46,35 @@ class ZabbixTriggerAction(ZabbixObject):
                     'recovery',
                     self.defaults['default']['alert']['recovery'])):
                 result['recovery_msg'] = 1
-                result['r_shortdata'] = self.obj['alert'].get('recovery_subject',
+                result['r_shortdata'] = self.obj.get('recovery_subject',
                         self.defaults['default']['alert']['recovery_subject'])
-                result['r_longdata'] = self.obj['alert'].get('recovery_text',
+                result['r_longdata'] = self.obj.get('recovery_text',
                         self.defaults['default']['alert']['recovery_text'])
 
             result['eventsource'] = self.defaults[
                 'default']['alert']['eventsource']
             result['status'] = int(
                 bool(
-                    self.obj['alert'].get(
+                    self.obj.get(
                         'disabled',
                         self.defaults['default']['disabled'])))
-            result['esc_period'] = self.obj['alert'].get(
+            result['esc_period'] = self.obj.get(
                 'escalation_time',
                 self.defaults['default']['alert']['escalation_time'])
-            result['evaltype'] = self.obj['alert'].get(
+            result['evaltype'] = self.obj.get(
                 'eval',
                 self.defaults['default']['alert']['eval'])
 
             alert_severity = self.defaults['warn_level'].index(
-                self.obj['alert'].get(
+                self.obj.get(
                     'severity',
                     self.defaults['default']['alert']['warn_level']).lower())
             alert_severity_cmp = self.defaults['cmp'][
-                self.obj['alert'].get(
+                self.obj.get(
                     'severity_cmp',
                     self.defaults['default']['alert']['cmp']).lower()]
             alert_trigger_status = self.defaults['trigger_status'].index(
-                self.obj['alert'].get(
+                self.obj.get(
                     'trigger_status',
                     self.defaults['default']['alert']['trigger_status']).lower())
 
@@ -91,15 +91,15 @@ class ZabbixTriggerAction(ZabbixObject):
                  'value': alert_severity},
             ]
 
-            if 'group' in self.obj['alert']:
+            if 'group' in self.obj:
                 result['conditions'].append({
                     'conditiontype': 0,
                     'operator': 0,
                     'value': self.zapi.get_id(
                         'hostgroup',
-                        self.obj['alert']['group'])
+                        self.obj['group'])
                     })
-            elif not 'all' in self.obj['alert']:
+            elif not 'all' in self.obj:
                 # actionid: Template - 13, like - 2
                 result['conditions'].append({
                     'conditiontype': 13,
@@ -109,7 +109,7 @@ class ZabbixTriggerAction(ZabbixObject):
             result['operations'] = []
 
             # fill operations for alert
-            for op in self.obj['alert'].get('do', []):
+            for op in self.obj.get('do', []):
                 # check if we need to send a message to user or group
                 if op.get(
                         'action',

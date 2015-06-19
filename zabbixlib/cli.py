@@ -278,9 +278,9 @@ class ZabbixCLI(ZabbixCLIArguments):
             ZabbixAutoreg(self.zapi, self.template).apply()
 
     def _apply_trigger_action(self):
-        alert = self.template.get('alert')
-        if alert:
-            ZabbixTriggerAction(self.zapi, self.template, self.config, self.template_id).apply()
+        alerts = self.template.get('alerts', [])
+        for alert in alerts:
+            ZabbixTriggerAction(self.zapi, alert, self.config, self.template_id, self.template_name).apply()
 
     def _apply_discovery(self, discovery):
         ZabbixDiscovery(self.zapi, discovery, self.config, self.template_id).apply()
