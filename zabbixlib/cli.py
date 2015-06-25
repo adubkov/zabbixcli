@@ -351,7 +351,7 @@ class ZabbixCLI(ZabbixCLIArguments):
                             # Make function to remove object
                             func = 'self.zapi.{object_type}.delete'.format(object_type=type_)
                             log.info('Unused: %s \'%s\' was removed', type_, name)
-                            # eval(func)(object_id)
+                            eval(func)(object_id)
 
         # Init lists for objects
         items = apps = discovery = itemprototype = graphprototype = triggerprototype = []
